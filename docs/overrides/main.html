@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div style="display: flex; justify-content: flex-end; margin-bottom: -1.5rem; position: relative; z-index: 100;">
+    <div class="custom-dropdown">
+      <button class="dropdown-trigger" onclick="toggleMcpMenu()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+        Copy page
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 8px;"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      
+      <div id="mcpMenu" class="dropdown-content">
+        <div class="menu-item" onclick="copyGithubRawMarkdown()">
+          <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+          <div class="menu-text">
+            <div class="menu-title">Copy page</div>
+            <div class="menu-desc">Copy page as Markdown for LLMs</div>
+          </div>
+        </div>
+
+        <div class="menu-divider"></div>
+
+        <div class="menu-item" onclick="connectToCursorDoc()">
+          <svg class="menu-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+          <div class="menu-text">
+            <div class="menu-title">Connect to Cursor ↗</div>
+            <div class="menu-desc">Add Doc on Cursor</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .custom-dropdown { position: relative; display: inline-block; }
+    .dropdown-trigger {
+      display: flex; align-items: center; padding: 6px 12px;
+      background: #f8f9fb; color: #333; border: 1px solid #e1e4e8;
+      border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .dropdown-trigger:hover { background: #fff; border-color: #0066FF; color: #0066FF; }
+    .dropdown-content {
+      display: none; position: absolute; right: 0; top: 110%;
+      min-width: 260px; background: #ffffff; border: 1px solid #e1e4e8;
+      border-radius: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); padding: 6px;
+    }
+    .menu-item { display: flex; align-items: flex-start; padding: 10px; border-radius: 6px; cursor: pointer; }
+    .menu-item:hover { background: #f5f7f9; }
+    .menu-icon { width: 16px; height: 16px; margin-top: 2px; margin-right: 12px; color: #666; }
+    .menu-text { display: flex; flex-direction: column; }
+    .menu-title { font-size: 13px; color: #24292e; font-weight: 600; }
+    .menu-desc { font-size: 11px; color: #6a737d; margin-top: 2px; }
+    .menu-divider { height: 1px; background: #e1e4e8; margin: 4px 6px; }
+    .show { display: block; }
+  </style>
+
+  <script>
+    // 配置你的 GitHub 信息
+    const GITHUB_RAW_BASE = "https://raw.githubusercontent.com/abn2357/documentation-en/master/docs/";
+    const DOC_BASE_URL = "https://abn2357.github.io/documentation-en/";
+
+    function toggleMcpMenu() {
+      document.getElementById("mcpMenu").classList.toggle("show");
+    }
+
+    async function copyGithubRawMarkdown() {
+      // 1. 获取当前页面相对于文档根目录的路径
+      // 例如从 https://abn2357.github.io/documentation-en/using_javatron/private_network/
+      // 提取出 using_javatron/private_network/
+      let relativePath = window.location.pathname.replace("/documentation-en/", "");
+      
+      // 2. 移除末尾斜杠并加上 .md
+      if (relativePath.endsWith("/")) {
+        relativePath = relativePath.slice(0, -1);
+      }
+      if (!relativePath || relativePath === "") {
+        relativePath = "index"; // 首页处理
+      }
+      
+      const rawFileUrl = GITHUB_RAW_BASE + relativePath + ".md";
+
+      try {
+        const response = await fetch(rawFileUrl);
+        if (!response.ok) throw new Error("GitHub Raw file not found");
+        
+        const text = await response.text();
+        await navigator.clipboard.writeText(text);
+        
+        // 反馈
+        const trigger = document.querySelector('.dropdown-trigger');
+        const oldHtml = trigger.innerHTML;
+        trigger.innerText = "Copied Raw MD!";
+        setTimeout(() => trigger.innerHTML = oldHtml, 2000);
+      } catch (err) {
+        console.error("Fetch error:", err);
+        alert("Failed to fetch original Markdown from GitHub. Check console for URL.");
+      }
+    }
+
+    function connectToCursorDoc() {
+      navigator.clipboard.writeText(DOC_BASE_URL);
+      const name = "abn2357 doc";
+      const cursorLink = `cursor://docs/add?name=${encodeURIComponent(name)}&url=${encodeURIComponent(DOC_BASE_URL)}&prefix=${encodeURIComponent(DOC_BASE_URL)}`;
+      window.location.href = cursorLink;
+    }
+
+    window.onclick = function(event) {
+      if (!event.target.closest('.custom-dropdown')) {
+        document.getElementById("mcpMenu").classList.remove('show');
+      }
+    }
+  </script>
+
+  {{ super() }}
+{% endblock %}
