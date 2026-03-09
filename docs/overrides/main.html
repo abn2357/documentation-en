@@ -58,7 +58,7 @@
     }
     .menu-item { display: flex; align-items: flex-start; padding: 12px; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
     .menu-item:hover { background: #f5f7f9; }
-    .menu-icon { width: 18px; height: 18px; margin-top: 2px; margin-right: 14px; color: #4b5563; } /* 图标颜色稍深，更具质感 */
+    .menu-icon { width: 18px; height: 18px; margin-top: 2px; margin-right: 14px; color: #4b5563; } /* Icon color slightly darker for better texture */
     .menu-text { display: flex; flex-direction: column; }
     .menu-title { font-size: 13px; color: #1a1a1a; font-weight: 600; }
     .menu-desc { font-size: 11px; color: #6a737d; margin-top: 3px; line-height: 1.4; }
@@ -72,6 +72,7 @@
   </style>
 
   <script>
+    // Basic Configuration
     const GITHUB_RAW_BASE = "https://raw.githubusercontent.com/tronprotocol/documentation-en/master/docs/";
     const SERVER_NAME = "java-tron English Doc";
     const SERVER_URL = "https://flauntingly-apt-cathryn.ngrok-free.dev/mcp";
@@ -80,7 +81,7 @@
       document.getElementById("mcpMenu").classList.toggle("show");
     }
 
-    // 功能 1: 复制 Markdown
+    // Function 1: Copy Markdown
     async function copyGithubRawMarkdown() {
       let relativePath = window.location.pathname.replace("/documentation-en/", "");
       if (relativePath.endsWith("/")) relativePath = relativePath.slice(0, -1);
@@ -98,7 +99,7 @@
       }
     }
 
-    // 功能 2: 复制 MCP URL (新增)
+    // Function 2: Copy MCP URL
     async function copyMcpUrl() {
       try {
         await navigator.clipboard.writeText(SERVER_URL);
@@ -114,7 +115,7 @@
       setTimeout(() => { el.style.display = 'none'; }, 1500);
     }
 
-    // 功能 3: 深度链接安装
+    // Function 3: Deep Link Installation
     function installRemoteMcp() {
       const configObj = { name: SERVER_NAME, url: SERVER_URL };
       const base64Config = btoa(JSON.stringify(configObj));
@@ -122,6 +123,7 @@
       window.location.href = installLink;
     }
 
+    // Close when clicking outside
     window.onclick = function(event) {
       if (!event.target.closest('.custom-dropdown')) {
         const menu = document.getElementById("mcpMenu");
