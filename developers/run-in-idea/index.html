@@ -1654,15 +1654,24 @@
             <div class="menu-title">Copy page</div>
             <div class="menu-desc">Copy page as Markdown for LLMs</div>
           </div>
-          <div id="copyFeedback" style="display: none; position: absolute; top: 6px; right: 10px; color: #0066FF; font-size: 11px; font-weight: bold;">Copied!</div>
+          <div id="copyFeedback" class="feedback-tag">Copied!</div>
+        </div>
+
+        <div class="menu-item" onclick="copyMcpUrl()" style="position: relative;">
+          <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+          <div class="menu-text">
+            <div class="menu-title">Copy MCP Server</div>
+            <div class="menu-desc">Copy MCP Server URL to clipboard</div>
+          </div>
+          <div id="urlFeedback" class="feedback-tag">Copied!</div>
         </div>
 
         <div class="menu-divider"></div>
 
         <div class="menu-item" onclick="installRemoteMcp()">
-          <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7.5 4.27 9 5.15"></path><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path><path d="m3.27 6.96 8.73 5.05 8.73-5.05"></path><path d="M12 22.08V12"></path></svg>
           <div class="menu-text">
-            <div class="menu-title">Connect to Cursor</div>
+            <div class="menu-title">Connect to Cursor <span style="font-weight: normal; margin-left: 2px;">↗</span></div>
             <div class="menu-desc">Install MCP Server on Cursor</div>
           </div>
         </div>
@@ -1682,74 +1691,77 @@
     
     .dropdown-content {
       display: none; position: absolute; right: 0; top: 120%;
-      min-width: 280px; background: #ffffff; border: 1px solid #e1e4e8;
+      min-width: 290px; background: #ffffff; border: 1px solid #e1e4e8;
       border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); padding: 8px;
     }
     .menu-item { display: flex; align-items: flex-start; padding: 12px; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
     .menu-item:hover { background: #f5f7f9; }
-    .menu-icon { width: 18px; height: 18px; margin-top: 2px; margin-right: 14px; color: #666; }
+    .menu-icon { width: 18px; height: 18px; margin-top: 2px; margin-right: 14px; color: #4b5563; } /* Icon color slightly darker for better texture */
     .menu-text { display: flex; flex-direction: column; }
     .menu-title { font-size: 13px; color: #1a1a1a; font-weight: 600; }
     .menu-desc { font-size: 11px; color: #6a737d; margin-top: 3px; line-height: 1.4; }
     .menu-divider { height: 1px; background: #f0f0f0; margin: 6px 8px; }
+    
+    .feedback-tag { 
+      display: none; position: absolute; top: 8px; right: 12px; 
+      color: #0066FF; font-size: 11px; font-weight: bold; 
+    }
     .show { display: block; }
   </style>
 
   <script>
-    // 基础配置
-    const GITHUB_RAW_BASE = "https://raw.githubusercontent.com/abn2357/documentation-en/master/docs/";
+    // Basic Configuration
+    const GITHUB_RAW_BASE = "https://raw.githubusercontent.com/tronprotocol/documentation-en/master/docs/";
     const SERVER_NAME = "java-tron English Doc";
-    //const SERVER_URL = "http://localhost:8001/mcp";
     const SERVER_URL = "https://flauntingly-apt-cathryn.ngrok-free.dev/mcp";
 
     function toggleMcpMenu() {
       document.getElementById("mcpMenu").classList.toggle("show");
     }
 
-    // 功能 1: 复制 Markdown (保持菜单开启)
+    // Function 1: Copy Markdown
     async function copyGithubRawMarkdown() {
       let relativePath = window.location.pathname.replace("/documentation-en/", "");
       if (relativePath.endsWith("/")) relativePath = relativePath.slice(0, -1);
       if (!relativePath || relativePath === "") relativePath = "index";
-      
       const rawFileUrl = GITHUB_RAW_BASE + relativePath + ".md";
 
       try {
         const response = await fetch(rawFileUrl);
-        if (!response.ok) throw new Error("MD Source not found");
+        if (!response.ok) throw new Error("Source not found");
         const text = await response.text();
         await navigator.clipboard.writeText(text);
-        
-        const feedback = document.getElementById('copyFeedback');
-        feedback.style.display = 'block';
-        setTimeout(() => { 
-          feedback.style.display = 'none';
-          // 注意：此处移除了自动关闭菜单的逻辑
-        }, 1500);
+        showFeedback('copyFeedback');
       } catch (err) {
-        alert("Unable to fetch Markdown source from GitHub.");
+        alert("Unable to fetch Markdown source.");
       }
     }
 
-    // 功能 2: 模仿 CDP 的 Base64 深度链接安装
+    // Function 2: Copy MCP URL
+    async function copyMcpUrl() {
+      try {
+        await navigator.clipboard.writeText(SERVER_URL);
+        showFeedback('urlFeedback');
+      } catch (err) {
+        console.error("Failed to copy URL");
+      }
+    }
+
+    function showFeedback(id) {
+      const el = document.getElementById(id);
+      el.style.display = 'block';
+      setTimeout(() => { el.style.display = 'none'; }, 1500);
+    }
+
+    // Function 3: Deep Link Installation
     function installRemoteMcp() {
-      // 构建配置对象
-      const configObj = {
-        name: SERVER_NAME,
-        url: SERVER_URL
-      };
-      
-      // 转换为 Base64 编码字符串
+      const configObj = { name: SERVER_NAME, url: SERVER_URL };
       const base64Config = btoa(JSON.stringify(configObj));
-      
-      // 构建 CDP 风格的深度链接
       const installLink = `cursor://anysphere.cursor-deeplink/mcp/install?name=${encodeURIComponent(SERVER_NAME)}&config=${base64Config}`;
-      
-      console.log("Deep-linking to Cursor:", installLink);
       window.location.href = installLink;
     }
 
-    // 点击外部自动关闭
+    // Close when clicking outside
     window.onclick = function(event) {
       if (!event.target.closest('.custom-dropdown')) {
         const menu = document.getElementById("mcpMenu");
