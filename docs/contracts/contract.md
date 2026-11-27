@@ -69,7 +69,7 @@ message SmartContract {
 - `contract_address`: smart contract address
 - `abi`: the api information of all the function of the smart contract
 - `bytecode`: smart contract byte code
-- `call_value`: TRX transferred into smart contract while call the contract
+- `call_value`: amount of TRX transferred to the new contract during deployment, in SUN
 - `consume_user_resource_percent`: resource consumption percentage set by the developer
 - `name`: smart contract name. It must not exceed 32 bytes. The limit is measured using UTF-8 encoding, not by the number of characters
 - `origin_energy_limit`: energy consumption of the developer limit in one call, must be greater than 0. For old contracts that were deployed without this parameter, the stored value is 0 but the runtime substitutes a default of 10,000,000 energy (`CREATOR_DEFAULT_ENERGY_LIMIT`); developers can use the `updateEnergyLimit` api to update this parameter (the new value must be greater than 0)
@@ -84,8 +84,10 @@ Through other two grpc message types `CreateSmartContract` and `TriggerSmartCont
 #### constant function and non-constant function
 
 There are two types of function according to whether any change will be made to the properties on the chain: constant function and non-constant function
-Constant function uses `view`/`pure` to decorate, will return the result on the node it is called and not be broadcasted in the form of a transaction
-Non-constant function will be broadcasted in the form of a transaction while being called, the function will change the data on the chain, such as transfer, changing the value of the internal variables of contracts, etc.
+Constant functions are marked with `view`/`pure`. When called through `triggerConstantContract`, they return the result directly from the node without broadcasting a transaction.
+Non-constant functions can modify on-chain data, such as transferring TRX or changing internal contract variables. State changes take effect only after successful on-chain execution as a transaction.
+
+`triggerConstantContract` can also simulate calls to non-`view`/`pure` functions locally without committing state changes or broadcasting a transaction.
 
 **Note**: legacy contracts may use the deprecated `constant` function modifier. It is a compile-time annotation only and is not encoded into bytecode, so already-deployed contracts continue to run normally; however, recompiling such sources with the current TRON Solidity compiler will fail with a parser error — use `view`/`pure` for new contracts.
 
@@ -111,7 +113,7 @@ zero instead of attempting another contract creation.
 
     - accompany with constructor to call transfer
     - accompany with internal function to call transfer
-    - use `transfer`/`send`/`call`/`callcode`/`delegatecall` to call transfer
+    - transfer TRX using `transfer`, `send`, or a `call` carrying a nonzero `value`
 
     **Note**: TRON's smart contract differs from TRON's system contract.
     Before the SOLIDITY_059 upgrade (chain parameter `ALLOW_TVM_SOLIDITY_059`,
@@ -179,12 +181,12 @@ This is similar with the grammar of the conversion from other types converted to
 
 #### address judgement
 
-Solidity has address constant judgement, if using 21 bytes address the compiler will throw out an error, so you should use 20 bytes address, like:
+Addresses written directly in Solidity code must use the 20-byte hexadecimal form without TRON's `41` prefix and must pass the compiler's address checksum check. For example:
 
 ```solidity
 function compareAddress(address tronAddress) public view returns (uint256){
         // if (tronAddress == 0x41ca35b7d915458ef540ade6068dfe2f44e8fa733c) { // compile error
-        if (tronAddress == 0xca35b7d915458ef540ade6068dfe2f44e8fa733c) { // right
+        if (tronAddress == 0xCA35b7d915458EF540aDe6068dFe2F44E8fa733c) { // right
             return 1;
         } else {
             return 0;
@@ -196,12 +198,12 @@ But if you are using wallet-cli, pass the 21-byte TRON address as a 32-byte ABI-
 
 #### variable assignment
 
-Solidity has address constant assignment, if using 21 bytes address the compiler will throw out an error, so you should use 20 bytes address, like:
+The same 20-byte format and checksum requirements apply when assigning an address to a variable:
 
 ```solidity
 function assignAddress() public view {
         // address newAddress = 0x41ca35b7d915458ef540ade6068dfe2f44e8fa733c; // compile error
-        address newAddress = 0xca35b7d915458ef540ade6068dfe2f44e8fa733c;
+        address newAddress = 0xCA35b7d915458EF540aDe6068dFe2F44E8fa733c;
         // do something
 }
 ```
@@ -212,8 +214,7 @@ If you want to use a base58 TRON address string (e.g. `TLLM21wteSPs4hKjbxgmH1L6p
 
 #### Currency
 
-Like solidity supports ETH, TRON VM supports trx and sun, 1 trx = 1000000 sun, case sensitive, only support lower case. tron-studio supports trx and sun, remix does not support trx and sun.
-We recommend to use tron-studio instead of remix to build TRON smart contract.
+The TRON Solidity compiler supports the currency units `trx` and `sun`, where `1 trx = 1,000,000 sun`. Unit names are case-sensitive and must be lowercase. We recommend [TronIDE](https://developers.tron.network/docs/tron-ide) for writing, compiling, and deploying TRON smart contracts.
 
 #### Block Related
 

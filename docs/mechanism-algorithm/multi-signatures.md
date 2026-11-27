@@ -219,7 +219,7 @@ for (int id : contractId) {
 System.out.println(ByteArray.toHexString(operations));
 ```
 
->**Note**: The `contractId` above only illustrates the bit-setting logic. `ContractType` IDs are not contiguous (7, 21-29, 34-40, etc. are gaps), and a bit can only be set for a contract type already present in the on-chain `AVAILABLE_CONTRACT_TYPE` bitmap; otherwise the transaction is rejected during validation. `AVAILABLE_CONTRACT_TYPE` roughly corresponds to the `#` column in the [ContractType Overview](./system-contracts.md#contracttype-overview) table, except it does not include ShieldedTransferContract(51).
+>**Note**: The `contractId` above only illustrates the bit-setting logic. `ContractType` IDs are not contiguous (7, 21-29, 34-40, etc. are gaps), and a bit can only be set for a contract type already present in the on-chain `AVAILABLE_CONTRACT_TYPE` bitmap; otherwise the transaction is rejected during validation. `AVAILABLE_CONTRACT_TYPE` roughly corresponds to the `#` column in the [ContractType Overview](./system-contracts.md#contracttype-overview) table; the current mainnet bitmap does not include `ShieldedTransferContract(51)`, `MarketSellAssetContract(52)`, or `MarketCancelOrderContract(53)`.
 
 ### 3. Transaction Execution Process
 
